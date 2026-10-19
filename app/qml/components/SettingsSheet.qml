@@ -12,6 +12,7 @@ ModalSheet {
         { "id": "playback", "icon": "play_circle", "label": qsTr("Playback") },
         { "id": "sound", "icon": "graphic_eq", "label": qsTr("Sound") },
         { "id": "downloads", "icon": "download", "label": qsTr("Downloads") },
+        { "id": "network", "icon": "lan", "label": qsTr("Network") },
         { "id": "system", "icon": "desktop_windows", "label": qsTr("System") },
         { "id": "diagnostics", "icon": "bug_report", "label": qsTr("Diagnostics") },
         { "id": "about", "icon": "info", "label": qsTr("About") }
@@ -691,6 +692,14 @@ ModalSheet {
 
                 width: parent.width
                 visible: root.section === "downloads"
+                height: visible ? implicitHeight : 0
+            }
+
+            NetworkSettings {
+                id: network
+
+                width: parent.width
+                visible: root.section === "network"
                 height: visible ? implicitHeight : 0
             }
 

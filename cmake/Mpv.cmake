@@ -33,7 +33,7 @@ if(WIN32)
     find_file(MPV_RUNTIME_LIBRARY
         NAMES libmpv-2.dll mpv-2.dll libmpv.dll
         HINTS ${MPV_ROOT} $ENV{MPV_ROOT}
-        PATH_SUFFIXES bin "")
+        PATH_SUFFIXES lib bin "")
     if(NOT MPV_RUNTIME_LIBRARY)
         message(FATAL_ERROR "libmpv-2.dll was not found next to the import library.")
     endif()

@@ -631,6 +631,11 @@ void Downloads::fetch(const player::Stream &stream)
         {QByteArrayLiteral("range"),
          QByteArrayLiteral("bytes=") + QByteArray::number(offset) + '-'},
     };
+    const QString host = stream.url.host();
+    if (host.contains(QLatin1String("googlevideo.com")) || host.contains(QLatin1String("youtube.com"))) {
+        headers.append({QByteArrayLiteral("origin"), QByteArrayLiteral("https://music.youtube.com")});
+        headers.append({QByteArrayLiteral("referer"), QByteArrayLiteral("https://music.youtube.com/")});
+    }
     if (!stream.cookie.isEmpty())
         headers.append({QByteArrayLiteral("cookie"), stream.cookie.toUtf8()});
     const qint64 available =

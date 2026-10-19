@@ -2,6 +2,9 @@
     "metadataClient": "WEB_REMIX",
     "lyricsClient": "IOS_MUSIC",
     "streamChain": [
+        "ANDROID_MUSIC",
+        "IOS_MUSIC",
+        "TVHTML5",
         "VISIONOS",
         "VISIONOS_1_02"
     ],
@@ -10,6 +13,17 @@
         "WEB_CREATOR"
     ],
     "clients": {
+        "ANDROID_MUSIC": {
+            "clientName": "ANDROID_MUSIC",
+            "clientVersion": "7.08.51",
+            "clientId": "21",
+            "userAgent": "com.google.android.apps.youtube.music/7.08.51 (Linux; U; Android 14; en_US) gzip",
+            "osName": "Android",
+            "osVersion": "14",
+            "deviceMake": "Google",
+            "deviceModel": "Pixel 8",
+            "androidSdkVersion": "34"
+        },
         "WEB_REMIX": {
             "clientName": "WEB_REMIX",
             "clientVersion": "1.20260213.01.00",

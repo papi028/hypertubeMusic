@@ -1,6 +1,7 @@
 #include "PcmReader.h"
 
 #include "core/Paths.h"
+#include "net/ProxySettings.h"
 
 #include <QDir>
 #include <QElapsedTimer>
@@ -53,6 +54,9 @@ std::optional<PcmReader::Result> PcmReader::read(const player::Stream &stream,
         && setOption(handle, "audio-samplerate", QByteArray::number(kSampleRate))
         && setOption(handle, "audio-channels", "mono") && setOption(handle, "audio-format", "float")
         && setOption(handle, "cache", "yes");
+    const QString proxy = net::ProxySettings::instance().effectiveMpvProxy();
+    if (!proxy.isEmpty())
+        setOption(handle, "http-proxy", proxy.toUtf8());
     if (!configured || mpv_initialize(handle) < 0) {
         mpv_terminate_destroy(handle);
         return std::nullopt;
@@ -60,9 +64,24 @@ std::optional<PcmReader::Result> PcmReader::read(const player::Stream &stream,
 
     if (!stream.userAgent.isEmpty())
         mpv_set_property_string(handle, "user-agent", stream.userAgent.toUtf8().constData());
-    const QString cookie =
-        stream.cookie.isEmpty() ? QString() : QStringLiteral("Cookie: ") + stream.cookie;
-    mpv_set_property_string(handle, "http-header-fields", cookie.toUtf8().constData());
+    const char *clr[] = {"change-list", "http-header-fields", "clr", "", nullptr};
+    mpv_command(handle, clr);
+
+    const QString host = stream.url.host();
+    if (host.contains(QLatin1String("googlevideo.com")) || host.contains(QLatin1String("youtube.com"))) {
+        const char *origin[] = {"change-list", "http-header-fields", "append",
+                                "Origin: https://music.youtube.com", nullptr};
+        mpv_command(handle, origin);
+        const char *referer[] = {"change-list", "http-header-fields", "append",
+                                 "Referer: https://music.youtube.com/", nullptr};
+        mpv_command(handle, referer);
+    }
+    if (!stream.cookie.isEmpty()) {
+        const QByteArray cookieHeader = (QStringLiteral("Cookie: ") + stream.cookie).toUtf8();
+        const char *cookie[] = {"change-list", "http-header-fields", "append",
+                                cookieHeader.constData(), nullptr};
+        mpv_command(handle, cookie);
+    }
 
     const QByteArray target = stream.url.toString().toUtf8();
     const char *arguments[] = {"loadfile", target.constData(), "replace", nullptr};

@@ -168,6 +168,8 @@ qt_add_executable(ht-music
     net/CookieJar.cpp
     net/Connectivity.h
     net/Connectivity.cpp
+    net/ProxySettings.h
+    net/ProxySettings.cpp
     net/RateLimiter.h
     net/RateLimiter.cpp
     innertube/ClientRegistry.h
@@ -424,6 +426,7 @@ qt_add_qml_module(ht-music
         qml/components/VolumeControl.qml
         qml/components/ColorPicker.qml
         qml/components/DownloadSettings.qml
+        qml/components/NetworkSettings.qml
         qml/components/SettingsSheet.qml
         qml/components/Actions.qml
         qml/components/ItemMenu.qml

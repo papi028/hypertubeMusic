@@ -3,6 +3,7 @@
 #include "PlaybackSettings.h"
 #include "core/Logging.h"
 #include "core/Paths.h"
+#include "net/ProxySettings.h"
 
 #include <QDir>
 #include <QStringList>
@@ -138,6 +139,7 @@ const char *MpvController::requestName(Request request)
     case Request::TrimFilter: return "vf";
     case Request::TrimCrop: return "video-crop";
     case Request::TrimMetadata: return "vf-metadata/trim";
+    case Request::HttpProxy: return "http-proxy";
     case Request::Generic: break;
     }
     return "mpv";
@@ -171,6 +173,10 @@ MpvController::MpvController(QObject *parent)
     mpv_set_option_string(m_handle, "curl-max-request-size", kBoundedRequestSize);
     mpv_set_option_string(m_handle, "ytdl", "no");
 
+    const QString proxy = net::ProxySettings::instance().effectiveMpvProxy();
+    if (!proxy.isEmpty())
+        mpv_set_option_string(m_handle, "http-proxy", proxy.toUtf8().constData());
+
     const int status = mpv_initialize(m_handle);
     if (status < 0) {
         qCCritical(logPlayback) << "mpv failed to initialize" << mpv_error_string(status);
@@ -193,6 +199,8 @@ MpvController::MpvController(QObject *parent)
 
     m_trimTimer.setInterval(kTrimIntervalMs);
     connect(&m_trimTimer, &QTimer::timeout, this, &MpvController::sampleTrim);
+    connect(&net::ProxySettings::instance(), &net::ProxySettings::effectiveProxyChanged, this,
+            &MpvController::setHttpProxy);
 }
 
 MpvController::~MpvController()
@@ -217,11 +225,18 @@ void MpvController::load(const QUrl &url, const QString &userAgent, const QStrin
     setFlag("pause", paused, Request::Pause);
     if (!userAgent.isEmpty())
         setProperty("user-agent", userAgent, Request::UserAgent);
-    if (cookie.isEmpty())
-        command({"change-list", "http-header-fields", "clr", ""}, Request::HttpHeaders);
-    else
-        setProperty("http-header-fields", QStringLiteral("Cookie: ") + cookie,
-                    Request::HttpHeaders);
+    command({"change-list", "http-header-fields", "clr", ""}, Request::HttpHeaders);
+    const QString host = url.host();
+    if (host.contains(QLatin1String("googlevideo.com")) || host.contains(QLatin1String("youtube.com"))) {
+        command({"change-list", "http-header-fields", "append", "Origin: https://music.youtube.com"},
+                Request::HttpHeaders);
+        command({"change-list", "http-header-fields", "append", "Referer: https://music.youtube.com/"},
+                Request::HttpHeaders);
+    }
+    if (!cookie.isEmpty()) {
+        command({"change-list", "http-header-fields", "append",
+                 (QStringLiteral("Cookie: ") + cookie).toUtf8()}, Request::HttpHeaders);
+    }
     applyFilters();
     setProperty("speed", QString::number(m_speed, 'f', 6), Request::Speed);
     setStart(startMilliseconds);
@@ -273,6 +288,11 @@ void MpvController::setPictureEnabled(bool enabled)
         return;
     m_pictureEnabled = enabled;
     syncPictureTrack();
+}
+
+void MpvController::setHttpProxy(const QString &proxyUrl)
+{
+    setProperty("http-proxy", proxyUrl, Request::HttpProxy);
 }
 
 void MpvController::syncPictureTrack()

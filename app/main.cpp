@@ -10,6 +10,7 @@
 #include "media/ArtworkProvider.h"
 #include "media/PlaybackController.h"
 #include "media/QueueSync.h"
+#include "net/ProxySettings.h"
 #include "platform/Desktop.h"
 #include "platform/SessionStore.h"
 #include "platform/SingleInstance.h"
@@ -49,6 +50,8 @@ int run(int argc, char *argv[], QStringList &relaunch)
 
     diagnostics::DiagnosticsSettings &reporting = diagnostics::DiagnosticsSettings::instance();
     reporting.restore();
+
+    net::ProxySettings::instance().restore();
 
     const auto &localization = core::Localization::instance();
     theme::ThemeLibrary::instance().restore();

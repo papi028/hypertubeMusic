@@ -64,6 +64,7 @@ public:
     void refreshFilters();
     void setPictureUrl(const QUrl &url);
     void setPictureEnabled(bool enabled);
+    void setHttpProxy(const QString &proxyUrl);
 
 Q_SIGNALS:
     void positionChanged(qint64 milliseconds);
@@ -98,6 +99,7 @@ private:
         TrimFilter,
         TrimCrop,
         TrimMetadata,
+        HttpProxy,
     };
 
     static void wakeup(void *context);
